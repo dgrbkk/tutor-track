@@ -1,0 +1,116 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table Teacher {
+  id String [pk]
+  firstName String [not null]
+  lastName String [not null]
+  email String [unique, not null]
+  phoneNumber String [unique, not null]
+  password String [not null]
+  avatarUrl String
+  students Student [not null]
+  lessons Lesson [not null]
+  bibliography Bibliography [not null]
+}
+
+Table Student {
+  id String [pk]
+  firstName String [not null]
+  lastName String [not null]
+  email String [not null]
+  phoneNumber String [not null]
+  parentsPhoneNumber String
+  studentInfo StudentInfo
+  lessons Lesson [not null]
+  Teacher Teacher [not null]
+  teacherId String [not null]
+  studentsBibliography StudentsBibliography [not null]
+
+  indexes {
+    (firstName, lastName, email, phoneNumber, teacherId) [unique]
+  }
+}
+
+Table StudentInfo {
+  id String [pk]
+  request String [not null]
+  availableTime String
+  characterTraits String
+  knowledgeLevel String [not null]
+  notes String
+  student Student [not null]
+  studentId String [unique, not null]
+}
+
+Table Lesson {
+  id String [pk]
+  date DateTime [not null]
+  duration Int [not null, default: 60]
+  slots Int [not null, default: 1]
+  url String
+  topic String
+  grade String
+  homework String
+  status Boolean [not null, default: false]
+  rating Int
+  homeworkCheck Boolean [not null, default: false]
+  notes String
+  payment Payment
+  Teacher Teacher [not null]
+  teacherId String [not null]
+  student Student [not null]
+  studentId String [not null]
+
+  indexes {
+    (teacherId, date) [unique]
+  }
+}
+
+Table Bibliography {
+  id String [pk]
+  name String [not null]
+  author String
+  url String [unique, not null]
+  teacher Teacher [not null]
+  teacherId String [not null]
+  studentsBibliography StudentsBibliography [not null]
+}
+
+Table StudentsBibliography {
+  student Student [not null]
+  studentId String [not null]
+  bibliography Bibliography [not null]
+  bibliographyId String [not null]
+
+  indexes {
+    (studentId, bibliographyId) [pk]
+  }
+}
+
+Table Payment {
+  id String [pk]
+  price Int [not null]
+  time DateTime
+  status Boolean [not null, default: false]
+  paymentNotes String
+  lesson Lesson [not null]
+  lessonId String [unique, not null]
+}
+
+Ref: Student.teacherId > Teacher.id [delete: Cascade]
+
+Ref: StudentInfo.studentId - Student.id [delete: Cascade]
+
+Ref: Lesson.teacherId > Teacher.id [delete: Cascade]
+
+Ref: Lesson.studentId > Student.id [delete: Cascade]
+
+Ref: Bibliography.teacherId > Teacher.id [delete: Cascade]
+
+Ref: StudentsBibliography.studentId > Student.id [delete: Cascade]
+
+Ref: StudentsBibliography.bibliographyId > Bibliography.id [delete: Cascade]
+
+Ref: Payment.lessonId - Lesson.id [delete: Cascade]

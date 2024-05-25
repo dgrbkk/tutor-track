@@ -1,0 +1,113 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator erd {
+  provider = "prisma-erd-generator"
+  erdDebug = true
+}
+
+generator dbml {
+  provider = "prisma-dbml-generator"
+}
+
+model Teacher {
+  id           String         @id @default(uuid())
+  firstName    String
+  lastName     String
+  email        String         @unique
+  phoneNumber  String         @unique
+  password     String
+  avatarUrl    String?
+  students     Student[]
+  lessons      Lesson[]
+  bibliography Bibliography[]
+}
+
+model Student {
+  id                   String                 @id @default(uuid())
+  firstName            String
+  lastName             String
+  email                String
+  phoneNumber          String
+  parentsPhoneNumber   String?
+  studentInfo          StudentInfo?
+  lessons              Lesson[]
+  Teacher              Teacher                @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  teacherId            String
+  studentsBibliography StudentsBibliography[]
+
+  @@unique([firstName, lastName, email, phoneNumber, teacherId])
+}
+
+model StudentInfo {
+  id              String  @id @default(uuid())
+  request         String
+  availableTime   String?
+  characterTraits String?
+  knowledgeLevel  String
+  notes           String?
+  student         Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId       String  @unique
+}
+
+model Lesson {
+  id            String   @id @default(uuid())
+  date          DateTime
+  duration      Int      @default(60)
+  slots         Int      @default(1)
+  url           String?
+  topic         String?
+  grade         String?
+  homework      String?
+  status        Boolean  @default(false)
+  rating        Int?
+  homeworkCheck Boolean  @default(false)
+  notes         String?
+  payment       Payment?
+  Teacher       Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  teacherId     String
+  student       Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId     String
+
+  @@unique([teacherId, date])
+}
+
+model Bibliography {
+  id                   String                 @id @default(uuid())
+  name                 String
+  author               String?
+  url                  String
+  teacher              Teacher                @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  teacherId            String
+  studentsBibliography StudentsBibliography[]
+
+  @@unique([url])
+}
+
+model StudentsBibliography {
+  student        Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  studentId      String
+  bibliography   Bibliography @relation(fields: [bibliographyId], references: [id], onDelete: Cascade)
+  bibliographyId String
+
+  @@id([studentId, bibliographyId])
+}
+
+model Payment {
+  id       String    @id @default(uuid())
+  price    Int
+  time     DateTime?
+  status   Boolean   @default(false)
+  paymentNotes    String?
+  lesson   Lesson    @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonId String    @unique
+}
